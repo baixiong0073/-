@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kernel UI - Core System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        core: '#0F1419',
+                        panel: '#1A1F25',
+                        neon: '#00FFCC',
+                        accent: '#0099FF',
+                        muted: '#4B5563'
+                    },
+                    fontFamily: {
+                        mono: ['Consolas', 'Monaco', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .glow {
+                box-shadow: 0 0 8px theme('colors.neon'), inset 0 0 8px theme('colors.neon');
+            }
+            .scanline {
+                background: linear-gradient(
+                    to bottom,
+                    transparent 50%,
+                    rgba(0, 255, 204, 0.03) 50%
+                );
+                background-size: 100% 4px;
+                animation: scan 8s linear infinite;
+                will-change: transform;
+                transform: translateZ(0);
+            }
+        }
+
+        @keyframes scan {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            transform: translateZ(0);
+        }
+    </style>
+</head>
+<body class="bg-core text-white font-mono overflow-hidden select-none">
+    <div class="relative w-screen h-screen flex flex-col scanline">
+        
+        <!-- === 顶部状态栏 === -->
+        <header class="h-12 bg-panel/80 backdrop-blur-sm border-b border-neon/20 flex items-center px-4 justify-between">
+            <div class="flex items-center gap-2">
+                <span class="status-dot w-2 h-2 rounded-full bg-neon"></span>
+                <h1 class="text-neon text-sm tracking-widest">KERNEL_CORE.EXE</h1>
+            </div>
+            <div class="text-xs text-muted tracking-wider" id="sys-time">INITIALIZING...</div>
+        </header>
+
+        <!-- === 主内容区 === -->
+        <main class="flex-1 flex overflow-hidden">
+            
+            <!-- 侧边导航 -->
+            <aside class="w-16 bg-panel/50 border-r border-neon/10 flex flex-col items-center py-6 gap-6">
+                <button class="w-10 h-10 rounded flex items-center justify-center text-neon border border-neon/30 hover:bg-neon/10 transition-colors duration-150">
+                    <i class="fa fa-microchip"></i>
+                </button>
+                <button class="w-10 h-10 rounded flex items-center justify-center text-muted hover:text-accent transition-colors duration-150">
+                    <i class="fa fa-database"></i>
+                </button>
+                <button class="w-10 h-10 rounded flex items-center justify-center text-muted hover:text-accent transition-colors duration-150">
+                    <i class="fa fa-terminal"></i>
+                </button>
+                <button class="w-10 h-10 rounded flex items-center justify-center text-muted hover:text-accent transition-colors duration-150">
+                    <i class="fa fa-cog"></i>
+                </button>
+            </aside>
+
+            <!-- 数据面板 -->
+            <section class="flex-1 p-6 grid grid-cols-3 gap-4 content-start">
+                
+                <!-- 系统信息 -->
+                <div class="col-span-2 bg-panel rounded p-4 border border-neon/20 hover:border-neon/50 transition-colors">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-accent text-sm uppercase">System Overview</h2>
+                        <span class="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">ONLINE</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <p class="text-muted mb-1">CPU Usage</p>
+                            <p class="text-lg text-neon">0.4% <span class="text-xs text-green-400">OPTIMAL</span></p>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1">Memory</p>
+                            <p class="text-lg">1024MB / 8192MB</p>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1">Uptime</p>
+                            <p class="text-lg">00:32:14</p>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1">Processes</p>
+                            <p class="text-lg">24 Active</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 状态卡片 -->
+                <div class="bg-panel rounded p-4 border border-neon/20 hover:border-neon/50 transition-colors">
+                    <h2 class="text-accent text-sm uppercase mb-4">Core Status</h2>
+                    <ul class="space-y-3 text-xs">
+                        <li class="flex justify-between">
+                            <span class="text-muted">Kernel Mode</span>
+                            <span class="text-neon">ACTIVE</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-muted">Security</span>
+                            <span class="text-green-400">ENFORCED</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-muted">Network</span>
+                            <span class="text-blue-400">STABLE</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-muted">Temperature</span>
+                            <span class="text-yellow-400">36°C</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 日志区 -->
+                <div class="col-span-3 bg-panel rounded p-4 border border-neon/20 h-48 overflow-hidden">
+                    <h2 class="text-accent text-sm uppercase mb-2">Event Log</h2>
+                    <div class="text-xs font-mono text-green-400/80 space-y-1 h-full overflow-hidden">
+                        <p>[<span class="text-muted">00:00:01</span>] System boot sequence completed</p>
+                        <p>[<span class="text-muted">00:00:02</span>] Drivers loaded successfully</p>
+                        <p>[<span class="text-muted">00:00:05</span>] Network interface initialized</p>
+                        <p>[<span class="text-muted">00:00:10</span>] Security protocols enabled</p>
+                        <p>[<span class="text-muted">00:32:14</span>] UI rendering optimized | CPU usage minimal</p>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+
+    </div>
+
+    <!-- 仅用于时间更新，无复杂运算 -->
+    <script>
+        const timeEl = document.getElementById('sys-time');
+        function updateTime() {
+            const now = new Date();
+            timeEl.textContent = now.toISOString().split('T')[1].slice(0, 8);
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
