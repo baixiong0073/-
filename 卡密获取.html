@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 猪猪侠验证</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fce4ec;
+            font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 粉色小碎花背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 20% 30%, #f8bbd0 1.5px, transparent 1.5px),
+                radial-gradient(circle at 80% 70%, #f8bbd0 1px, transparent 1px),
+                radial-gradient(circle at 40% 90%, #f48fb1 1.5px, transparent 1.5px),
+                radial-gradient(circle at 70% 20%, #f8bbd0 1px, transparent 1px),
+                radial-gradient(circle at 10% 60%, #f48fb1 1px, transparent 1px);
+            background-size: 70px 70px, 90px 90px, 110px 110px, 80px 80px, 100px 100px;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 主卡片 - 粉嫩 */
+        .card {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 240, 245, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 40px;
+            padding: 36px 30px 28px;
+            max-width: 370px;
+            width: 100%;
+            box-shadow:
+                0 12px 40px rgba(233, 30, 99, 0.10),
+                0 4px 16px rgba(233, 30, 99, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1.5px solid rgba(255, 200, 210, 0.5);
+            text-align: center;
+        }
+
+        /* 名牌 - 粉色 */
+        .badge {
+            display: inline-block;
+            background: rgba(244, 143, 177, 0.15);
+            border: 1px solid rgba(244, 143, 177, 0.2);
+            border-radius: 30px;
+            padding: 2px 16px;
+            font-size: 10px;
+            color: #e87a9a;
+            letter-spacing: 3px;
+            margin-bottom: 2px;
+        }
+
+        /* 猪猪侠头像 */
+        .pig {
+            font-size: 72px;
+            display: inline-block;
+            animation: wobble 3.5s ease-in-out infinite;
+            filter: drop-shadow(0 4px 16px rgba(233, 30, 99, 0.15));
+            margin-top: -8px;
+            line-height: 1.2;
+        }
+        @keyframes wobble {
+            0%, 100% { transform: rotate(-4deg) scale(1); }
+            50% { transform: rotate(5deg) scale(1.03); }
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #7a4a5a;
+            margin-top: -2px;
+            letter-spacing: 2px;
+        }
+        .title .pink {
+            color: #ec8a9a;
+        }
+
+        .sub {
+            font-size: 12px;
+            color: #d4a0b0;
+            letter-spacing: 4px;
+            margin-top: 1px;
+            font-weight: 300;
+        }
+
+        /* 验证码区域 - 粉色 */
+        .code-box {
+            margin: 18px 0 16px;
+            padding: 22px 16px 18px;
+            background: rgba(255, 230, 235, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 28px;
+            border: 2px dashed rgba(244, 143, 177, 0.25);
+            transition: all 0.4s ease;
+            min-height: 88px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .code-box.open {
+            background: rgba(255, 230, 235, 0.7);
+            border: 2px solid rgba(244, 143, 177, 0.25);
+        }
+
+        .lock {
+            font-size: 22px;
+            opacity: 0.2;
+            transition: all 0.4s ease;
+            position: absolute;
+            top: 8px;
+            right: 14px;
+        }
+        .code-box.open .lock {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        .code-display {
+            font-size: 42px;
+            font-weight: 600;
+            font-family: "SF Mono", "Courier New", monospace;
+            letter-spacing: 10px;
+            color: #7a4a5a;
+            transition: all 0.45s ease;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .code-display.hidden {
+            filter: blur(20px);
+            -webkit-filter: blur(20px);
+            color: #d4a0b0;
+            user-select: none;
+            letter-spacing: 14px;
+            font-size: 36px;
+        }
+
+        .code-display.show {
+            filter: blur(0);
+            -webkit-filter: blur(0);
+            letter-spacing: 10px;
+            animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: #7a4a5a;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.7) rotate(-3deg); opacity: 0.3; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .code-hint {
+            font-size: 12px;
+            color: #e0b8c8;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            margin-top: 2px;
+        }
+        .code-box.open .code-hint {
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* 按钮 - 粉色渐变 */
+        .btn {
+            width: 100%;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f8bbd0, #f48fb1);
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #7a4a5a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            position: relative;
+            box-shadow: 0 4px 0 #e8a0b8;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #e8a0b8;
+            background: linear-gradient(135deg, #fcc4d8, #f59dbd);
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #e8a0b8;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #e8a0b8;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .btn .icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .btn:hover .icon {
+            transform: rotate(-10deg) scale(1.1);
+        }
+
+        /* 倒计时 - 粉色 */
+        .timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+            font-size: 12px;
+            color: #d4a0b0;
+        }
+        .timer .num {
+            color: #c488a0;
+            font-weight: 500;
+            min-width: 18px;
+        }
+        .timer .track {
+            width: 70px;
+            height: 4px;
+            background: #f5d6e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .timer .track .fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #f8bbd0, #f48fb1);
+            border-radius: 10px;
+            transition: width 1s linear;
+        }
+
+        /* 历史 - 粉色 */
+        .history {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1.5px dashed #f5d6e0;
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            min-height: 26px;
+        }
+        .history .pill {
+            font-family: "SF Mono", "Courier New", monospace;
+            font-size: 12px;
+            color: #d4a0b0;
+            background: rgba(255, 240, 245, 0.5);
+            padding: 2px 10px;
+            border-radius: 30px;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .history .pill.fresh {
+            color: #b47088;
+            background: rgba(255, 230, 235, 0.7);
+            border-color: rgba(244, 143, 177, 0.15);
+        }
+        .history .empty {
+            font-size: 12px;
+            color: #ecc8d4;
+            letter-spacing: 1px;
+        }
+
+        .footer {
+            margin-top: 14px;
+            font-size: 11px;
+            color: #ecc8d4;
+            letter-spacing: 2px;
+        }
+        .footer .paw {
+            display: inline-block;
+            animation: walk 3s ease-in-out infinite;
+        }
+        @keyframes walk {
+            0%, 100% { transform: translateX(-2px); }
+            50% { transform: translateX(2px); }
+        }
+
+        @media (max-width: 400px) {
+            .card { padding: 28px 18px 22px; }
+            .code-display { font-size: 32px; letter-spacing: 6px; }
+            .code-display.hidden { font-size: 28px; letter-spacing: 10px; }
+            .pig { font-size: 56px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <div class="badge">✦ G.G. BOND ✦</div>
+
+    <div class="pig">🐷</div>
+
+    <div class="title">猪猪侠 <span class="pink">·</span> 验证</div>
+    <div class="sub">✧ 超级棒棒糖 ✧ 能量启动 ✧</div>
+
+    <div class="code-box" id="codeBox">
+        <span class="lock">🔒</span>
+        <div class="code-display hidden" id="codeDisplay">••••••</div>
+        <div class="code-hint">👆 点击获取超级能量</div>
+    </div>
+
+    <button class="btn" id="btn">
+        <span class="icon">🍭</span> 超级棒棒糖 <span class="icon">🍭</span>
+    </button>
+
+    <div class="timer">
+        <span>⏱</span>
+        <span class="num" id="timerNum">--</span>
+        <span>s</span>
+        <div class="track">
+            <div class="fill" id="timerFill" style="width:100%"></div>
+        </div>
+    </div>
+
+    <div class="history" id="history">
+        <span class="empty">— 还没有哦 —</span>
+    </div>
+
+    <div class="footer">
+        <span class="paw">🐾</span> 粉色猪猪 · 永远相信光 <span class="paw">🐾</span>
+    </div>
+
+</div>
+
+<script>
+    const SECRET = "BAIXIONG7X5KQ3PZ";
+
+    function base32Decode(s) {
+        const alp = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        let bits = '';
+        for (let c of s) {
+            if (c === '=') break;
+            let v = alp.indexOf(c);
+            if (v === -1) continue;
+            bits += v.toString(2).padStart(5, '0');
+        }
+        let bytes = [];
+        for (let i = 0; i + 8 <= bits.length; i += 8) {
+            bytes.push(parseInt(bits.substr(i, 8), 2));
+        }
+        return new Uint8Array(bytes);
+    }
+
+    async function hmacSha1(key, msg) {
+        const k = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+        const r = await crypto.subtle.sign('HMAC', k, msg);
+        return new Uint8Array(r);
+    }
+
+    async function genTOTP(secret, ts) {
+        const key = base32Decode(secret);
+        const counter = Math.floor(ts / 30);
+        const msg = new ArrayBuffer(8);
+        const view = new DataView(msg);
+        view.setBigUint64(0, BigInt(counter), false);
+        const h = await hmacSha1(key, msg);
+        const offset = h[19] & 0x0F;
+        const code = ((h[offset] & 0x7F) << 24) |
+                     ((h[offset+1] & 0xFF) << 16) |
+                     ((h[offset+2] & 0xFF) << 8) |
+                     (h[offset+3] & 0xFF);
+        return code % 1000000;
+    }
+
+    const display = document.getElementById('codeDisplay');
+    const box = document.getElementById('codeBox');
+    const btn = document.getElementById('btn');
+    const timerNum = document.getElementById('timerNum');
+    const timerFill = document.getElementById('timerFill');
+    const historyEl = document.getElementById('history');
+
+    let timer = null;
+    let countdown = 0;
+    let isShowing = false;
+    let history = [];
+
+    function showCode(code) {
+        const str = String(code).padStart(6, '0');
+        display.textContent = str;
+        display.className = 'code-display show';
+        box.className = 'code-box open';
+        isShowing = true;
+
+        if (navigator.vibrate) navigator.vibrate(8);
+
+        history.unshift(str);
+        if (history.length > 6) history.pop();
+        renderHistory();
+
+        startTimer(30);
+    }
+
+    function hideCode() {
+        display.className = 'code-display hidden';
+        display.textContent = '••••••';
+        box.className = 'code-box';
+        isShowing = false;
+        if (timer) { clearInterval(timer); timer = null; }
+        timerNum.textContent = '--';
+        timerFill.style.width = '100%';
+    }
+
+    function startTimer(sec) {
+        if (timer) clearInterval(timer);
+        countdown = sec;
+        timerNum.textContent = countdown;
+        timerFill.style.width = '100%';
+
+        timer = setInterval(() => {
+            countdown--;
+            timerNum.textContent = countdown >= 0 ? countdown : 0;
+            timerFill.style.width = ((countdown / sec) * 100) + '%';
+
+            if (countdown <= 0) {
+                clearInterval(timer);
+                timer = null;
+                timerNum.textContent = '0';
+                timerFill.style.width = '0%';
+                if (isShowing) {
+                    setTimeout(() => {
+                        hideCode();
+                        btn.disabled = false;
+                        btn.innerHTML = '<span class="icon">🍭</span> 再来一次 <span class="icon">🍭</span>';
+                    }, 300);
+                }
+            }
+        }, 1000);
+    }
+
+    function renderHistory() {
+        if (history.length === 0) {
+            historyEl.innerHTML = '<span class="empty">— 还没有哦 —</span>';
+            return;
+        }
+        let html = '';
+        history.forEach((h, i) => {
+            html += `<span class="pill${i === 0 ? ' fresh' : ''}">${h}</span>`;
+        });
+        historyEl.innerHTML = html;
+    }
+
+    btn.addEventListener('click', async function(e) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="icon">⏳</span> 能量充能中';
+
+        try {
+            const now = Math.floor(Date.now() / 1000);
+            const code = await genTOTP(SECRET, now);
+            showCode(code);
+            btn.innerHTML = '<span class="icon">✨</span> 能量启动！ <span class="icon">✨</span>';
+            setTimeout(() => {
+                btn.innerHTML = '<span class="icon">🍭</span> 再来一次 <span class="icon">🍭</span>';
+                btn.disabled = false;
+            }, 900);
+        } catch (err) {
+            display.textContent = '😅';
+            display.className = 'code-display show';
+            btn.innerHTML = '<span class="icon">💦</span> 再试试';
+            btn.disabled = false;
+            console.log(err);
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !btn.disabled) btn.click();
+    });
+
+    hideCode();
+    renderHistory();
+</script>
+
+</body>
+</html>
